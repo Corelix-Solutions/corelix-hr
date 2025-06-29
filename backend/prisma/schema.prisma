@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model employees {
+  employeeId                      Int                               @id @default(autoincrement()) @db.UnsignedInt
+  employee_FirstName              String?                           @db.VarChar(100)
+  employee_LastName               String?                           @db.VarChar(100)
+  employee_Address                String?                           @db.Text
+  employee_PhoneNumber            String?                           @db.VarChar(20)
+  employee_HireDate               DateTime?                         @db.Date
+  employee_Gender                 employees_employee_Gender?
+  employee_Position               String?                           @db.VarChar(100)
+  employee_Department             String?                           @db.VarChar(100)
+  employee_Salary                 Decimal?                          @db.Decimal(10, 2)
+  employee_CivilStatus            employees_employee_CivilStatus?
+  employee_Status                 employees_employee_Status?
+  employee_ShiftSchedule          employees_employee_ShiftSchedule?
+  employee_TIN                    String?                           @db.Text
+  employee_SSSNumber              String                            @unique(map: "employee_SSSNumber") @db.VarChar(20)
+  employee_PhilhealthNumber       String                            @unique(map: "employee_PhilhealthNumber") @db.VarChar(100)
+  employee_emergencyContactName   String?                           @db.Text
+  employee_emergencyContactNumber String?                           @db.Text
+  employee_imageURL               String?                           @db.VarChar(255)
+}
+
+enum employees_employee_Gender {
+  Male
+  Female
+  Other
+}
+
+enum employees_employee_CivilStatus {
+  Single
+  Married
+  Divorced
+}
+
+enum employees_employee_Status {
+  Active
+  Inactive
+  On_Leave       @map("On Leave")
+  Suspended
+  Terminated
+  Resigned
+  Retired
+  Probation
+  Contract_Ended @map("Contract Ended")
+}
+
+enum employees_employee_ShiftSchedule {
+  DayShift
+  MidNight
+  NightShift
+}

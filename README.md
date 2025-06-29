@@ -4,6 +4,13 @@ Corelix Solutions is a modular, automation-first software suite tailored for sta
 ## 🚀 Vision
 To empower companies with software that adapts to them—not the other way around. Corelix is built with deep customization, modern UI/UX, and workflow automation at its core.
 
+## Features 
+- Employee Management
+- Time and Attendance
+- Payroll
+- UI Settings and Customazations
+
+
 ## Development Resources and Prerequisites
 Created using the following technologies and Deployed on ```Railway```
 - Reactjs
@@ -56,6 +63,8 @@ Created using the following technologies and Deployed on ```Railway```
    # Terminal 2: Start frontend
    npm run dev
    ```
-
+## To learn more or you have questions
+Feel free to email me on my corelix solution's email hellocorelixsolutions@gmail.com or email me on my personal (faster response) saguinsincarl8@gmail.com, Or if you want to be more professional let's talk on 
+[LinkedIn](https://www.linkedin.com/in/carl-saginsin-30358928a/)
 ## License (BUSL)
 See [LICENSE_NOTICE.md](./LICENSE_NOTICE.md) for the full license description.
