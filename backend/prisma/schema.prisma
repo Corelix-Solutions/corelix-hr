@@ -28,6 +28,8 @@ model employees {
   employee_emergencyContactName   String?                           @db.Text
   employee_emergencyContactNumber String?                           @db.Text
   employee_imageURL               String?                           @db.VarChar(255)
+  attendances                     employees_attendance[]
+  leaveRequests                   employee_request[]
 }
 
 enum employees_employee_Gender {
@@ -58,4 +60,47 @@ enum employees_employee_ShiftSchedule {
   DayShift
   MidNight
   NightShift
+}
+
+
+model employees_attendance {
+  attendance_id   Int                               @id @default(autoincrement()) @db.UnsignedInt
+  shiftSchedule   employees_employee_ShiftSchedule
+  employeeId      Int                               @db.UnsignedInt
+  clockIn         DateTime?                         @db.DateTime
+  clockOut        DateTime?                         @db.DateTime
+  employee        employees                        @relation(fields: [employeeId], references: [employeeId])
+}
+
+
+
+model employee_request {
+  leaverequest_id    Int      @id @default(autoincrement()) @db.UnsignedInt
+  leaverequest_reason String? @db.VarChar(100)
+  leave              employee_request_leave
+  employeeId         Int @db.UnsignedInt
+  employee           employees @relation(fields: [employeeId], references: [employeeId])
+}
+
+enum employee_request_leave {
+        Vacation
+        Sick
+        Parental
+        Family_Medical
+        Unpaid
+        Personal
+        Public_Holiday
+        Religious_Observance
+        Sabbatical
+        Bereavement
+        Compensatory
+        Military
+        Jury_Duty
+        Garden
+        Election
+        Study
+        Adverse_Weather
+        Volunteer
+        Domestic_Violence
+        Disability
 }
