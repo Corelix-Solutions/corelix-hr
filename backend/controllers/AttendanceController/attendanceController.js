@@ -1,6 +1,7 @@
 const { PrismaClient } = require('../../generated/prisma')
 const prisma = new PrismaClient();
 
+
 // Clock In: Create a new attendance record for the employee
 const employeeClockIn = async (req, res) => {
     const { 

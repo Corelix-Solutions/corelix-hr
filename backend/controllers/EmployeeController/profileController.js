@@ -1,6 +1,17 @@
 const { PrismaClient } = require('../../generated/prisma')
 const prisma = new PrismaClient();
+const generatePassword = require('generate-password');
+const bcrypt = require('bcryptjs');
 
+// This generates a temp password
+const password = generatePassword.generate({
+    length: 12,
+    numbers: true,
+    symbols: true,
+    uppercase: true,
+    strict: true
+})
+const hashedPassword = await bcrypt.hash(password, 10);
 
 const getAllEmployees = async (req,res) => {
     const employees = await prisma.employees.findMany();
@@ -9,55 +20,81 @@ const getAllEmployees = async (req,res) => {
 
 const addNewEmployee = async (req, res) => {
     const {
-         employee_FirstName,
-         employee_LastName,
-         employee_Address,
-         employee_PhoneNumber,
-         employee_HireDate,
-         employee_Gender,
-         employee_Position,
-         employee_Department,
-         employee_Salary,
-         employee_CivilStatus,
-         employee_Status,
-         employee_ShiftSchedule,
-         employee_TIN,
-         employee_SSSNumber,
-         employee_PhilHealthNumber,
-         employee_emergencyContactName,
-         employee_emergencyContactNumber,
-         employee_imageUrl
+        employee_FirstName,
+        employee_LastName,
+        employee_Address,
+        employee_PhoneNumber,
+        employee_HireDate,
+        employee_Gender,
+        employee_Position,
+        employee_Department,
+        employee_Salary,
+        employee_CivilStatus,
+        employee_Status,
+        employee_ShiftSchedule,
+        employee_TIN,
+        employee_SSSNumber,
+        employee_PhilHealthNumber,
+        employee_emergencyContactName,
+        employee_emergencyContactNumber,
+        employee_imageUrl,
+        password
     } = req.body;
+    if (
+        !employee_FirstName ||
+        !employee_LastName ||
+        !employee_Address ||
+        !employee_PhoneNumber ||
+        !employee_HireDate ||
+        !employee_Gender ||
+        !employee_Position ||
+        !employee_Department ||
+        !employee_Salary ||
+        !employee_CivilStatus ||
+        !employee_Status ||
+        !employee_ShiftSchedule ||
+        !employee_TIN ||
+        !employee_SSSNumber ||
+        !employee_PhilHealthNumber ||
+        !employee_emergencyContactName ||
+        !employee_emergencyContactNumber ||
+        !employee_imageUrl ||
+        !password
+    ) {
+        return res.status(400).json({ error: 'All employee fields are required.' });
+    }
 
     try {
         const newEmployee = await prisma.employees.create({
             data: {
-                employee_FirstName: employee_FirstName || null,
-                employee_LastName: employee_LastName || null,
-                employee_Address: employee_Address || null,
-                employee_PhoneNumber: employee_PhoneNumber || null,
-                employee_HireDate: employee_HireDate ? new Date(employee_HireDate) : null,
-                employee_Gender: employee_Gender || null,
-                employee_Position: employee_Position ||  null,
-                employee_Department: employee_Department ||  null,
-                employee_Salary: employee_Salary ? parseFloat(employee_Salary) : null,
-                employee_CivilStatus: employee_CivilStatus || null, 
-                employee_Status: employee_Status || null,
-                employee_ShiftSchedule: employee_ShiftSchedule || null,
-                employee_TIN: employee_TIN || null,
-                employee_SSSNumber: employee_SSSNumber || null,
-                employee_PhilhealthNumber: employee_PhilHealthNumber || null,
-                employee_emergencyContactName: employee_emergencyContactName || null,
-                employee_emergencyContactNumber: employee_emergencyContactNumber || null,
-                employee_imageURL: employee_imageUrl || null
+                employee_FirstName,
+                employee_LastName,
+                employee_Address,
+                employee_PhoneNumber,
+                employee_HireDate: new Date(employee_HireDate),
+                employee_Gender,
+                employee_Position,
+                employee_Department,
+                employee_Salary: parseFloat(employee_Salary),
+                employee_CivilStatus,
+                employee_Status,
+                employee_ShiftSchedule,
+                employee_TIN,
+                employee_SSSNumber,
+                employee_PhilhealthNumber: employee_PhilHealthNumber,
+                employee_emergencyContactName,
+                employee_emergencyContactNumber,
+                employee_imageURL: employee_imageUrl,
+                password: hashedPassword
             }
-        })
+        });
         res.status(201).json(newEmployee);
-    } catch(error) {
+    } catch (error) {
         console.error("Error adding new employee:", error);
-        res.status(500).json({error: 'Failed to create new employee'})
+        res.status(500).json({ error: 'Failed to create new employee' });
     }
 };
+
 
 const editExistingEmployee = async (req, res) => {
     const employeeId = parseInt(req.params.employeeId);
