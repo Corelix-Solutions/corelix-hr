@@ -6,17 +6,10 @@ const employeeClockIn = async (req, res) => {
     const { 
         employeeId, 
         clockIn,
-        leave,
         shiftSchedule
           } = req.body;
-    if (!employeeId) {
-        return res.status(400).json({ error: 'employeeId is required' });
-    }
-    if (!leave) {
-        return res.status(400).json({ error: 'leave is required'})
-    }
-    if (!shiftSchedule) {
-        return res.status(400).json({error: 'shift schedule required'})
+    if (!employeeId || !shiftSchedule) {
+        return res.status(400).json({ error: 'employeeId and shiftSchedule is required' });
     }
     try {
         const newClockIn = await prisma.employees_attendance.create({
@@ -24,7 +17,6 @@ const employeeClockIn = async (req, res) => {
                 employeeId: employeeId,
                 clockIn: clockIn ? new Date(clockIn) : new Date(),
                 shiftSchedule: shiftSchedule,
-                leave: leave
             }
         });
         res.status(201).json(newClockIn);
@@ -65,32 +57,29 @@ const employeeClockOut = async (req, res) => {
 };
 
 
-const leaveRequest = async(req, res) => {
+const leaveRequest = async (req, res) => {
     const {
         employeeId,
-        leaverequest_id,
         leaverequest_reason,
+        leaverequest_status,
         leave
     } = req.body;
-    if (!employeeId || !leaverequest_id) {
-        return res.status(400).json({ error: 'employeeId and leaverequest_id are required' });
-    }
-    if (!leave) {
-        return res.status(400).json({ error: 'leave is required' });
+    if (!employeeId || !leaverequest_status || !leave) {
+        return res.status(400).json({ error: 'missing employeeId, leaverequest_status and leave are required data' });
     }
     try {
         const newLeaveRequest = await prisma.employee_request.create({
             data: {
-                employeeId: employeeId,
-                leaverequest_id: leaverequest_id,
+                employeeId,
                 leaverequest_reason: leaverequest_reason || null,
-                leave: leave
+                leaverequest_status,
+                leave
             }
-        })
+        });
         res.status(201).json(newLeaveRequest);
-    } catch(error) {
-        console.error('Error adding new leave request', error)
-        res.status(500).json({ error: 'Failed to add new leave request'});
+    } catch (error) {
+        console.error('Error adding new leave request', error);
+        res.status(500).json({ error: 'Failed to add new leave request' });
     }
 };
 
