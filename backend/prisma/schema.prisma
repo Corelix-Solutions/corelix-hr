@@ -77,12 +77,14 @@ model employees_attendance {
 
 
 model employee_request {
-  leaverequest_id    Int      @id @default(autoincrement()) @db.UnsignedInt
-  leaverequest_reason String  @db.VarChar(100)
-  leaverequest_status  employee_request_status
-  leave              employee_request_leave
-  employeeId         Int       @db.UnsignedInt
-  employee           employees @relation(fields: [employeeId], references: [employeeId])
+  leaverequest_id     Int                      @id @default(autoincrement()) @db.UnsignedInt
+  leaverequest_reason String                   @db.VarChar(100)
+  leaverequest_status employee_request_status
+  leave               employee_request_leave
+  employeeId          Int                      @db.UnsignedInt
+  employee            employees                @relation(fields: [employeeId], references: [employeeId])
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
 }
 
 enum employee_request_leave {
@@ -183,3 +185,9 @@ enum hr_employee_request_status {
     Approved
     Rejected
 }
+
+
+// model job_posting {
+//  hrId Int 
+
+// }

@@ -1,14 +1,15 @@
 const express = require('express');
-const hrController = require('../../controllers/HumanResourcesController')
+const { getEmployeeLeaveRequest, editEmployeeLeaveRequest, getEmployeeAttendance } = require('../../controllers/HumanResourcesController/hrController');
 const router = express.Router();
 
 router
     .route('/humanresources')
-    .get()
+    .get(getEmployeeLeaveRequest)
+    .get(getEmployeeAttendance)
     .post();
 router
     .route('/humanresources/:hrId')
-    .put()
+    .put(editEmployeeLeaveRequest)
     .delete();
 
 module.exports = router;
