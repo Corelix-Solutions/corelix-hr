@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "formulahendry.auto-rename-tag",
+    "aaron-bond.better-comments",
+    "esbenp.prettier-vscode",
+    "mylesmurphy.prettify-ts",
+    "yoavbls.pretty-ts-errors",
+    "prisma.prisma",
+    "bradlc.vscode-tailwindcss"
+  ]
+}
