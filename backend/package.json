@@ -1,12 +1,12 @@
 {
   "name": "corelix-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc --build",
-    "prod": "node ./dist/index.js",
-    "dev": "nodemon ./src/index.ts"
+    "prod": "node ./dist/server.js",
+    "dev": "nodemon ./src/server.ts"
   },
   "author": "",
   "license": "ISC",
