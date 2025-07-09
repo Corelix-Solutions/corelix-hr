@@ -2,14 +2,29 @@ import express from "express";
 import AttendanceController from "./controllers/AttendanceController";
 import HrController from "./controllers/HrController";
 import ProfileController from "./controllers/ProfileController";
+import { prisma } from "./PrismaSingleton";
 
-const app = express();
-const PORT = 3000;
+const prismaClient = prisma;
 
-app.use(express.json());
+async function main() {
+  const app = express();
+  const PORT = 3000;
 
-app.use("/attendance", AttendanceController);
-app.use("/hr", HrController);
-app.use("/profile", ProfileController);
+  app.use(express.json());
 
-app.listen(PORT, () => console.log(`Running on port ${PORT}`));
+  app.use("/attendance", AttendanceController);
+  app.use("/hr", HrController);
+  app.use("/profile", ProfileController);
+
+  app.listen(PORT, () => console.log(`Running on port ${PORT}`));
+}
+
+main()
+  .then(async () => {
+    await prismaClient.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prismaClient.$disconnect();
+    process.exit(1);
+  });
