@@ -63,13 +63,27 @@ Created using the following technologies and Deployed on `Railway`
 
    Make a copy of the `backend/.env.example` file on the same directory, rename it to `.env`, then modify the values inside as needed.
 
-5. **Start the application**
+5. **Launch database**
+
+   Launch the MySQL database.
+
+6. **Setup prisma and database**
+
+   On the project root folder, run the following commands to generate the required prisma client files and create the database:
 
    ```bash
-   # Terminal 1: Start backend
+   cd backend
+   npx prisma generate
+   npx prisma db push
+   ```
+
+7. **Start the application**
+
+   ```bash
+   # Terminal 1: Start backend. Start from the project root folder
    cd backend && npm run dev
 
-   # Terminal 2: Start frontend
+   # Terminal 2: Start frontend. Start from the project root folder
    cd frontend && npm run dev
    ```
 
