@@ -16,7 +16,6 @@ datasource db {
 
 model Person {
   id                Int                        @id @default(autoincrement())
-  publicId          String                     @unique
   firstName         String
   middleName        String?
   lastName          String
@@ -27,7 +26,6 @@ model Person {
 
 model Employee {
   id                 Int                        @id @default(autoincrement())
-  publicId           String                     @unique
   personId           Int                        @unique
   email              String
   profileUrl         String?
@@ -55,7 +53,6 @@ model Employee {
 
 model Department {
   id          Int        @id @default(autoincrement())
-  publicId    String     @unique
   name        String
   dateDeleted DateTime?
   positions   Position[]
@@ -63,7 +60,6 @@ model Department {
 
 model Position {
   id           Int                @id @default(autoincrement())
-  publicId     String             @unique
   departmentId Int
   name         String
   dateDeleted  DateTime?
@@ -73,7 +69,6 @@ model Position {
 
 model EmployeePosition {
   id              Int       @id @default(autoincrement())
-  publicId        String    @unique
   employeeId      Int
   positionId      Int
   supervisorId    Int?
@@ -91,7 +86,6 @@ model EmployeePosition {
 
 model Attendance {
   id         Int       @id @default(autoincrement())
-  publicId   String    @unique
   employeeId Int
   timeIn     DateTime
   timeOut    DateTime?
@@ -100,7 +94,6 @@ model Attendance {
 
 model LeaveRequest {
   id         Int                @id @default(autoincrement())
-  publicId   String             @unique
   employeeId Int
   status     LeaveRequestStatus
   reason     LeaveReason
@@ -111,7 +104,6 @@ model LeaveRequest {
 
 model ContactInfo {
   id       Int         @id @default(autoincrement())
-  publicId String      @unique
   personId Int
   type     ContactType
   number   String
@@ -120,7 +112,6 @@ model ContactInfo {
 
 model EmployeeEmergencyContact {
   id           Int                          @id @default(autoincrement())
-  publicId     String                       @unique
   employeeId   Int
   personId     Int
   relationship EmergencyContactRelationship
