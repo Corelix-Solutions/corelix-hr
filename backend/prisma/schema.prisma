@@ -9,6 +9,11 @@ generator client {
   output   = "./generated/prisma"
 }
 
+datasource db {
+  provider = "mysql"
+  url      = "" // Intentionally blank
+}
+
 model Person {
   id                Int                        @id @default(autoincrement())
   publicId          String                     @unique
