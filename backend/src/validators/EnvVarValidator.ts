@@ -6,4 +6,5 @@ export default z.object({
   DATABASE_HOST: z.string().trim().min(1),
   DATABASE_PORT: z.string().trim().min(1),
   DATABASE_NAME: z.string().trim().min(1),
+  PORT: z.coerce.number(),
 })
