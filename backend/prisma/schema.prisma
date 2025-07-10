@@ -93,13 +93,14 @@ model Attendance {
 }
 
 model LeaveRequest {
-  id         Int                @id @default(autoincrement())
-  employeeId Int
-  status     LeaveRequestStatus
-  reason     LeaveReason
-  startDate  DateTime
-  endDate    DateTime
-  employee   Employee           @relation(fields: [employeeId], references: [id])
+  id          Int                @id @default(autoincrement())
+  employeeId  Int
+  status      LeaveRequestStatus
+  reason      LeaveReason
+  startDate   DateTime
+  endDate     DateTime
+  dateCreated DateTime           @default(now())
+  employee    Employee           @relation(fields: [employeeId], references: [id])
 }
 
 model ContactInfo {
