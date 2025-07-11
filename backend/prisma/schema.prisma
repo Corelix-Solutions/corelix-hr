@@ -178,8 +178,3 @@ enum Gender {
   Female
   Other
 }
-
-model employees {
-  employeeId       Int    @id @default(autoincrement()) @db.UnsignedInt
-  employee_Address String @db.Text
-}
