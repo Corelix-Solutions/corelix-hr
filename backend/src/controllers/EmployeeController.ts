@@ -6,9 +6,9 @@ import GetEmployees from '../handlers/employee/GetEmployees'
 
 const EmployeeController = Router()
 
-EmployeeController.get('/employees', GetEmployees)
-EmployeeController.post('/employees', AddEmployee)
-EmployeeController.put('/employees/:employeeId', EditEmployee)
-EmployeeController.delete('/employees/:employeeId', DeleteEmployee)
+EmployeeController.get('/', GetEmployees)
+EmployeeController.post('/', AddEmployee)
+EmployeeController.put('/:employeeId', EditEmployee)
+EmployeeController.delete('/:employeeId', DeleteEmployee)
 
 export default EmployeeController
