@@ -1,54 +1,38 @@
 import * as bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
 import * as passwordGenerator from 'generate-password'
+import * as z from 'zod'
+import { prisma } from '../../PrismaSingleton'
+import { CreateManyPersonResult } from '../../types/prisma'
+import NewEmployeeValidator from '../../validators/dtos/NewEmployeeValidator'
 
 export default async function AddEmployee(req: Request, res: Response) {
-  const {
-    employee_FirstName,
-    employee_LastName,
-    employee_Address,
-    employee_PhoneNumber,
-    employee_HireDate,
-    employee_Gender,
-    employee_Position,
-    employee_Department,
-    employee_Salary,
-    employee_CivilStatus,
-    employee_Status,
-    employee_ShiftSchedule,
-    employee_TIN,
-    employee_SSSNumber,
-    employee_PhilHealthNumber,
-    employee_emergencyContactName,
-    employee_emergencyContactNumber,
-    employee_imageUrl,
-    password,
-  } = req.body
-  if (
-    !employee_FirstName ||
-    !employee_LastName ||
-    !employee_Address ||
-    !employee_PhoneNumber ||
-    !employee_HireDate ||
-    !employee_Gender ||
-    !employee_Position ||
-    !employee_Department ||
-    !employee_Salary ||
-    !employee_CivilStatus ||
-    !employee_Status ||
-    !employee_ShiftSchedule ||
-    !employee_TIN ||
-    !employee_SSSNumber ||
-    !employee_PhilHealthNumber ||
-    !employee_emergencyContactName ||
-    !employee_emergencyContactNumber ||
-    !employee_imageUrl ||
-    !password
-  ) {
-    return res.status(400).json({ error: 'All employee fields are required.' })
-  }
-
   try {
+    // Parsing of request params, body, and queries happen here
+    // Do not touch since this allows makes it easier to move to a new router if need be
+    // If you want to deconstruct them, do it on later code
+    const body = NewEmployeeValidator.parse(req.body)
+
+    const { person, emergencyContacts, positionId, ...parsedResult } = body
+    const { contactInfos: personContactInfos, ...personFullName } = person
+
+    // Extract, insert into db, and map the emergency contacts
+    const emergencyContactPeopleInDb: CreateManyPersonResult =
+      await prisma.person.createManyAndReturn({
+        data: emergencyContacts.map((contact) => ({ ...contact.person })),
+      })
+
+    const mappedEmContactIdWithRelationship = emergencyContactPeopleInDb.map(
+      (contactInDb) => ({
+        personId: contactInDb.id,
+        relationship: emergencyContacts.find(
+          (submittedContact) =>
+            submittedContact.person.firstName === contactInDb.firstName &&
+            submittedContact.person.lastName,
+        )!.relationship,
+      }),
+    )
+
     // This generates a temp password
     const password = passwordGenerator.generate({
       length: 12,
@@ -59,34 +43,44 @@ export default async function AddEmployee(req: Request, res: Response) {
     })
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // const newEmployee = await prisma.employees.create({
-    //   data: {
-    //     employee_FirstName,
-    //     employee_LastName,
-    //     employee_Address,
-    //     employee_PhoneNumber,
-    //     employee_HireDate: new Date(employee_HireDate),
-    //     employee_Gender,
-    //     employee_Position,
-    //     employee_Department,
-    //     employee_Salary: parseFloat(employee_Salary),
-    //     employee_CivilStatus,
-    //     employee_Status,
-    //     employee_ShiftSchedule,
-    //     employee_TIN,
-    //     employee_SSSNumber,
-    //     employee_PhilhealthNumber: employee_PhilHealthNumber,
-    //     employee_emergencyContactName,
-    //     employee_emergencyContactNumber,
-    //     employee_imageURL: employee_imageUrl,
-    //     password: hashedPassword,
-    //   },
-    // });
-    res.status(201).json({})
+    // Finally create the employee
+    const newEmployee = await prisma.employee.create({
+      data: {
+        ...parsedResult,
+        passwordHash: hashedPassword,
+        emergencyContacts: {
+          createMany: { data: mappedEmContactIdWithRelationship },
+        },
+        person: {
+          create: {
+            ...personFullName,
+            contactInfos: {
+              createMany: {
+                data: personContactInfos,
+              },
+            },
+          },
+        },
+        positions: {
+          connect: { id: positionId },
+        },
+      },
+    })
 
-    // TODO-Hans: Remake this with validators
+    res.status(200).json(newEmployee)
   } catch (error) {
     console.error('Error adding new employee:', error)
-    res.status(500).json({ error: 'Failed to create new employee' })
+    if (error instanceof z.ZodError) {
+      res.status(422).json({
+        message:
+          'Failed to create new employee due to incorrect inputs. See error object for more details.',
+        error: z.flattenError(error),
+      })
+    } else {
+      res.status(500).json({
+        message:
+          "Failed to create new employee. Please contact the website's administrators.",
+      })
+    }
   }
 }

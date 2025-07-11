@@ -1,80 +1,126 @@
 import { Request, Response } from 'express'
+import * as z from 'zod'
+import { prisma } from '../../PrismaSingleton'
+import { CreateManyPersonResult } from '../../types/prisma'
+import EmployeeValidator from '../../validators/base/EmployeeValidator'
+import { IdValidator } from '../../validators/UtilityValidators'
 
 export default async function EditEmployee(req: Request, res: Response) {
-  const employeeId = parseInt(req.params.employeeId)
-  const {
-    employee_FirstName,
-    employee_LastName,
-    employee_Address,
-    employee_PhoneNumber,
-    employee_HireDate,
-    employee_Gender,
-    employee_Position,
-    employee_Department,
-    employee_Salary,
-    employee_CivilStatus,
-    employee_Status,
-    employee_ShiftSchedule,
-    employee_TIN,
-    employee_SSSNumber,
-    employee_PhilHealthNumber,
-    employee_emergencyContactName,
-    employee_emergencyContactNumber,
-    employee_imageUrl,
-  } = req.body
-
-  // Build update data object only with provided fields
-  // const updateData = {};
-  // if (employee_FirstName !== undefined)
-  //   updateData.employee_FirstName = employee_FirstName;
-  // if (employee_LastName !== undefined)
-  //   updateData.employee_LastName = employee_LastName;
-  // if (employee_Address !== undefined)
-  //   updateData.employee_Address = employee_Address;
-  // if (employee_PhoneNumber !== undefined)
-  //   updateData.employee_PhoneNumber = employee_PhoneNumber;
-  // if (employee_HireDate !== undefined)
-  //   updateData.employee_HireDate = employee_HireDate
-  //     ? new Date(employee_HireDate)
-  //     : null;
-  // if (employee_Gender !== undefined)
-  //   updateData.employee_Gender = employee_Gender;
-  // if (employee_Position !== undefined)
-  //   updateData.employee_Position = employee_Position;
-  // if (employee_Department !== undefined)
-  //   updateData.employee_Department = employee_Department;
-  // if (employee_Salary !== undefined)
-  //   updateData.employee_Salary = employee_Salary
-  //     ? parseFloat(employee_Salary)
-  //     : null;
-  // if (employee_CivilStatus !== undefined)
-  //   updateData.employee_CivilStatus = employee_CivilStatus;
-  // if (employee_Status !== undefined)
-  //   updateData.employee_Status = employee_Status;
-  // if (employee_ShiftSchedule !== undefined)
-  //   updateData.employee_ShiftSchedule = employee_ShiftSchedule;
-  // if (employee_TIN !== undefined) updateData.employee_TIN = employee_TIN;
-  // if (employee_SSSNumber !== undefined)
-  //   updateData.employee_SSSNumber = employee_SSSNumber;
-  // if (employee_PhilHealthNumber !== undefined)
-  //   updateData.employee_PhilhealthNumber = employee_PhilHealthNumber;
-  // if (employee_emergencyContactName !== undefined)
-  //   updateData.employee_emergencyContactName = employee_emergencyContactName;
-  // if (employee_emergencyContactNumber !== undefined)
-  //   updateData.employee_emergencyContactNumber =
-  //     employee_emergencyContactNumber;
-  // if (employee_imageUrl !== undefined)
-  //   updateData.employee_imageURL = employee_imageUrl;
-
   try {
-    // const updatedEmployee = await prisma.employees.update({
-    //   where: { employeeId },
-    //   data: updateData,
-    // });
-    res.status(200).json({})
-    // TODO-Hans: Remake this with validators
+    // Parsing of request params, body, and queries happen here
+    // Do not touch since this allows makes it easier to move to a new router if need be
+    // If you want to deconstruct them, do it on later code
+    const params = IdValidator.pick({ employeeId: true }).parse(req.params)
+    const body = EmployeeValidator.parse(req.body)
+
+    const { person, emergencyContacts, ...parsedResult } = body
+    const { contactInfos: personContactInfos, ...personFullName } = person
+
+    // Get Employee
+    const employeeToBeUpdated = await prisma.employee.findFirst({
+      where: { id: params.employeeId },
+      include: {
+        emergencyContacts: {
+          include: { person: { include: { contactInfos: true } } },
+        },
+        person: {
+          include: { contactInfos: true },
+        },
+      },
+    })
+
+    if (!employeeToBeUpdated) {
+      console.error(
+        `Failed to update employee. Could not find employee with ID ${params.employeeId}. `,
+      )
+      res
+        .status(404)
+        .json({ message: 'Failed to update employee. Employee not found.' })
+      return
+    }
+
+    // Delete the contact info of the employee then insert the new ones from the submission later
+    const employeeContactInfoIds = employeeToBeUpdated.person.contactInfos.map(
+      (infos) => infos.id,
+    )
+    await prisma.contactInfo.deleteMany({
+      where: { id: { in: employeeContactInfoIds } },
+    })
+
+    // Delete the emergency contacts and then insert the new ones from the submission
+    let oldEmContactIds: number[] = []
+    let oldEmContactPersonIds: number[] = []
+    let oldEmContactInfoIds: number[] = []
+    for (const contact of employeeToBeUpdated.emergencyContacts) {
+      oldEmContactIds.push(contact.id)
+      oldEmContactPersonIds.push(contact.personId)
+      oldEmContactInfoIds = oldEmContactInfoIds.concat(
+        contact.person.contactInfos.map((info) => info.id),
+      )
+    }
+
+    await prisma.employeeEmergencyContact.deleteMany({
+      where: { id: { in: oldEmContactIds } },
+    })
+    await prisma.person.deleteMany({
+      where: { id: { in: oldEmContactPersonIds } },
+    })
+    await prisma.contactInfo.deleteMany({
+      where: { id: { in: oldEmContactInfoIds } },
+    })
+
+    // Extract, insert into db, and map the emergency contacts
+    const emergencyContactPeopleInDb: CreateManyPersonResult =
+      await prisma.person.createManyAndReturn({
+        data: emergencyContacts.map((contact) => ({ ...contact.person })),
+      })
+
+    const mappedEmContactIdWithRelationship = emergencyContactPeopleInDb.map(
+      (contactInDb) => ({
+        personId: contactInDb.id,
+        relationship: emergencyContacts.find(
+          (submittedContact) =>
+            submittedContact.person.firstName === contactInDb.firstName &&
+            submittedContact.person.lastName,
+        )!.relationship,
+      }),
+    )
+
+    // Finally create the employee
+    const updatedEmployee = await prisma.employee.update({
+      where: { id: employeeToBeUpdated.id },
+      data: {
+        ...parsedResult,
+        emergencyContacts: {
+          createMany: { data: mappedEmContactIdWithRelationship },
+        },
+        person: {
+          update: {
+            ...personFullName,
+            contactInfos: {
+              createMany: {
+                data: personContactInfos,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    res.status(200).json(updatedEmployee)
   } catch (error) {
     console.error('Error updating employee:', error)
-    res.status(500).json({ error: 'Failed to update employee' })
+    if (error instanceof z.ZodError) {
+      res.status(422).json({
+        message:
+          'Failed to update employee due to incorrect inputs. See error object for more details.',
+        error: z.treeifyError(error),
+      })
+    } else {
+      res.status(500).json({
+        message:
+          "Failed to update employee. Please contact the website's administrators.",
+      })
+    }
   }
 }
