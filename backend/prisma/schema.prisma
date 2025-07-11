@@ -42,7 +42,6 @@ model Employee {
   dateHired          DateTime
   probationEndDate   DateTime?
   dateOfBirth        DateTime
-  dateDeleted        DateTime?
   person             Person                     @relation(fields: [personId], references: [id])
   positions          EmployeePosition[]
   attendances        Attendance[]
@@ -52,17 +51,15 @@ model Employee {
 }
 
 model Department {
-  id          Int        @id @default(autoincrement())
-  name        String
-  dateDeleted DateTime?
-  positions   Position[]
+  id        Int        @id @default(autoincrement())
+  name      String
+  positions Position[]
 }
 
 model Position {
   id           Int                @id @default(autoincrement())
   departmentId Int
   name         String
-  dateDeleted  DateTime?
   department   Department         @relation(fields: [departmentId], references: [id])
   employees    EmployeePosition[]
 }
