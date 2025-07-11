@@ -13,9 +13,9 @@ async function main() {
 
   app.use(express.json())
 
-  app.use('/attendance', AttendanceController)
-  app.use('/hr', HrController)
-  app.use('/employees', EmployeeController)
+  app.use('/api/attendance', AttendanceController)
+  app.use('/api/hr', HrController)
+  app.use('/api/employees', EmployeeController)
 
   app.listen(PORT, () => console.log(`Running on port ${PORT}`))
 }
