@@ -1,70 +1,97 @@
 # Corelix Solutions HR System
+
 Corelix Solutions is a modular, automation-first software suite tailored for startups to enterprises. We provide customizable systems for Accounting, ERP, CRM, POS, Inventory, and HR—designed for businesses that don’t want to settle for off-the-shelf limitations.
 
 ## 🚀 Vision
+
 To empower companies with software that adapts to them—not the other way around. Corelix is built with deep customization, modern UI/UX, and workflow automation at its core.
 
-## Features 
+## Features
+
 - Employee Management
 - Time and Attendance
 - Payroll
-- UI Settings and Customazations
-
+- UI Settings and Customizations
 
 ## Development Resources and Prerequisites
-Created using the following technologies and Deployed on ```Railway```
+
+Created using the following technologies and Deployed on `Railway`
+
 - Reactjs
 - TailwindCSS
 - ShadCN UI
 - Node/ExpressJs
 - Prisma ORM
 - MySQL
-- Postman
+- Bruno
 
 ## 🚀 Quick Start
+
 ### Prerequisites
+
 - NodeJs 16
 - Git
 - XAMPP or MySQL
+- Visual Studio Code
 
 ### Installaton
+
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd corelix-hr
    ```
 
-2. **Install dependencies**
+2. **Install workspace extensions**
+
+   Open the corelix-hr using Visual Studio Code and install the recommended workspace extensions when prompted.
+
+   If you haven't been prompted, press `Ctrl+Shift+P` (Windows) or `Cmd+Shift+P` (Mac) to open the command palette, search and execute the **Extensions: Show Recommended Extensions command**, then install the recommended workplace extensions on the Extensions panel.
+
+3. **Install dependencies**
+
    ```bash
    # Frontend dependencies
-   npm install
+   cd frontend && npm install
 
    # Backend dependencies
-   cd backend && npm install
+   cd ../backend && npm install
    ```
 
-3. **Setup Environment Variables**
-   
-   Create `backend/.env` file:
-   ```env
-    HOST=
-    PORT=
-    DATABASE=your_database_name
-    USER=your_database_user
-    PASSWORD=your_database_password
-    DATABASE_URL=
-   ```
+4. **Setup Environment Variables**
 
-4. **Start the application**
+   Make a copy of the `backend/.env.example` file on the same directory, rename it to `.env`, then modify the values inside as needed.
+
+5. **Launch database**
+
+   Launch the MySQL database.
+
+6. **Setup prisma and database**
+
+   On the project root folder, run the following commands to generate the required prisma client files and create the database:
+
    ```bash
-   # Terminal 1: Start backend
+   cd backend
+   npx prisma generate
+   npx prisma db push
+   ```
+
+7. **Start the application**
+
+   ```bash
+   # Terminal 1: Start backend. Start from the project root folder
    cd backend && npm run dev
 
-   # Terminal 2: Start frontend
-   npm run dev
+   # Terminal 2: Start frontend. Start from the project root folder
+   cd frontend && npm run dev
    ```
+
 ## To learn more or you have questions
-Feel free to email me on my corelix solution's email hellocorelixsolutions@gmail.com or email me on my personal (faster response) saguinsincarl8@gmail.com, Or if you want to be more professional let's talk on 
+
+Feel free to email me on my corelix solution's email hellocorelixsolutions@gmail.com or email me on my personal (faster response) saguinsincarl8@gmail.com, Or if you want to be more professional let's talk on
 [LinkedIn](https://www.linkedin.com/in/carl-saginsin-30358928a/)
+
 ## License (BUSL)
+
 See [LICENSE_NOTICE.md](./LICENSE_NOTICE.md) for the full license description.
