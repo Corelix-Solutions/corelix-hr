@@ -5,10 +5,10 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
 const dbUrl =
   envVars!.DATABASE_PASSWORD && envVars!.DATABASE_PASSWORD.length > 0
-    ? `postgres://${envVars!.DATABASE_USER}:${envVars!.DATABASE_PASSWORD}@${
+    ? `mysql://${envVars!.DATABASE_USER}:${envVars!.DATABASE_PASSWORD}@${
         envVars!.DATABASE_HOST
       }:${envVars!.DATABASE_PORT}/${envVars!.DATABASE_NAME}`
-    : `postgres://${envVars!.DATABASE_USER}@${envVars!.DATABASE_HOST}:${
+    : `mysql://${envVars!.DATABASE_USER}@${envVars!.DATABASE_HOST}:${
         envVars!.DATABASE_PORT
       }/${envVars!.DATABASE_NAME}`
 
