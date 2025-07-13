@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import * as passwordGenerator from 'generate-password'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { CreateManyPersonResult } from '../../types/prisma'
+import { CreatePersonResult } from '../../types/prisma'
 import NewEmployeeValidator from '../../validators/dtos/NewEmployeeValidator'
 
 export default async function AddEmployee(req: Request, res: Response) {
@@ -17,12 +17,20 @@ export default async function AddEmployee(req: Request, res: Response) {
     const { contactInfos: personContactInfos, ...personFullName } = person
 
     // Extract, insert into db, and map the emergency contacts
-    const emergencyContactPeopleInDb: CreateManyPersonResult =
-      await prisma.person.createManyAndReturn({
-        data: emergencyContacts.map((contact) => ({ ...contact.person })),
+    let insertedEmergencyPeople: CreatePersonResult[] = []
+    for (const currentContact of emergencyContacts) {
+      const { contactInfos, ...fullName } = currentContact.person
+      const insertedEmergencyPerson = await prisma.person.create({
+        data: {
+          ...fullName,
+          contactInfos: { createMany: { data: contactInfos } },
+        },
       })
 
-    const mappedEmContactIdWithRelationship = emergencyContactPeopleInDb.map(
+      insertedEmergencyPeople.push(insertedEmergencyPerson)
+    }
+
+    const mappedEmContactIdWithRelationship = insertedEmergencyPeople.map(
       (contactInDb) => ({
         personId: contactInDb.id,
         relationship: emergencyContacts.find(
