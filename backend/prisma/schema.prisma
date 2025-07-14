@@ -38,7 +38,6 @@ model Employee {
   gender             Gender
   mustChangePassword Boolean                    @default(true)
   civilStatus        CivilStatus
-  type               EmploymentType
   dateHired          DateTime
   probationEndDate   DateTime?
   dateOfBirth        DateTime
@@ -60,6 +59,7 @@ model Position {
   id           Int                @id @default(autoincrement())
   departmentId Int
   name         String
+  type         EmploymentType
   department   Department         @relation(fields: [departmentId], references: [id])
   employees    EmployeePosition[]
 }
