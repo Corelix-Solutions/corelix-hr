@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import * as passwordGenerator from 'generate-password'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { CreatePersonResult } from '../../types/prisma'
+import { PersonCreateResult } from '../../types/prisma'
 import NewEmployeeValidator from '../../validators/dtos/EmployeeCreateValidator'
 
 export default async function AddEmployee(req: Request, res: Response) {
@@ -17,7 +17,7 @@ export default async function AddEmployee(req: Request, res: Response) {
     const { contactInfos: personContactInfos, ...personFullName } = person
 
     // Extract, insert into db, and map the emergency contacts
-    let insertedEmergencyPeople: CreatePersonResult[] = []
+    let insertedEmergencyPeople: PersonCreateResult[] = []
     for (const currentContact of emergencyContacts) {
       const { contactInfos, ...fullName } = currentContact.person
       const insertedEmergencyPerson = await prisma.person.create({

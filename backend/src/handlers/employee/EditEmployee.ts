@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { CreatePersonResult } from '../../types/prisma'
+import { PersonCreateResult } from '../../types/prisma'
 import EmployeeValidator from '../../validators/base/EmployeeValidator'
 import { IdValidator } from '../../validators/UtilityValidators'
 
@@ -70,7 +70,7 @@ export default async function EditEmployee(req: Request, res: Response) {
     })
 
     // Extract, insert into db, and map the emergency contacts
-    let insertedEmergencyPeople: CreatePersonResult[] = []
+    let insertedEmergencyPeople: PersonCreateResult[] = []
     for (const currentContact of emergencyContacts) {
       const { contactInfos, ...fullName } = currentContact.person
       const insertedEmergencyPerson = await prisma.person.create({

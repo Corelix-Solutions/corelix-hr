@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { UpsertPositionArgs } from '../../types/prisma'
+import { PositionUpsertArgs } from '../../types/prisma'
 import { IdValidator } from '../../validators/UtilityValidators'
 import UpdateDepartmentValidator from '../../validators/dtos/DepartmentUpdateValidator'
 
@@ -21,7 +21,7 @@ export default async function EditDepartment(req: Request, res: Response) {
       return
     }
 
-    const upserts: UpsertPositionArgs[] = body.positions.map((position) => ({
+    const upserts: PositionUpsertArgs[] = body.positions.map((position) => ({
       create: {
         name: position.name,
         type: position.type,
