@@ -5,7 +5,7 @@ import { PositionUpsertArgs } from '../../types/prisma'
 import { IdValidator } from '../../validators/UtilityValidators'
 import UpdateDepartmentValidator from '../../validators/dtos/DepartmentUpdateValidator'
 
-export default async function EditDepartment(req: Request, res: Response) {
+export default async function UpdateDepartment(req: Request, res: Response) {
   try {
     const params = IdValidator.pick({ departmentId: true }).parse(req.params)
     const body = UpdateDepartmentValidator.parse(req.body)

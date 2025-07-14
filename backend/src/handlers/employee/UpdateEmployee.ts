@@ -5,7 +5,7 @@ import { PersonCreateResult } from '../../types/prisma'
 import EmployeeValidator from '../../validators/base/EmployeeValidator'
 import { IdValidator } from '../../validators/UtilityValidators'
 
-export default async function EditEmployee(req: Request, res: Response) {
+export default async function UpdateEmployee(req: Request, res: Response) {
   try {
     // Parsing of request params, body, and queries happen here
     // Do not touch since this allows makes it easier to move to a new router if need be
