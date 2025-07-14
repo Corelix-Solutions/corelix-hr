@@ -1,6 +1,8 @@
+import * as z from 'zod'
 import { IdValidator } from '../UtilityValidators'
 import EmployeeValidator from '../base/EmployeeValidator'
 
-export default EmployeeValidator.omit({ id: true }).extend(
-  IdValidator.pick({ positionId: true }).shape,
-)
+export default z.object({
+  ...EmployeeValidator.omit({ id: true }).shape,
+  ...IdValidator.pick({ positionId: true }).shape,
+})
