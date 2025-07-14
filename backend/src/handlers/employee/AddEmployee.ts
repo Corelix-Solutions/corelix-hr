@@ -4,7 +4,7 @@ import * as passwordGenerator from 'generate-password'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
 import { CreatePersonResult } from '../../types/prisma'
-import NewEmployeeValidator from '../../validators/dtos/NewEmployeeValidator'
+import NewEmployeeValidator from '../../validators/dtos/EmployeeCreateValidator'
 
 export default async function AddEmployee(req: Request, res: Response) {
   try {

@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
 import { UpsertPositionArgs } from '../../types/prisma'
 import { IdValidator } from '../../validators/UtilityValidators'
-import UpdateDepartmentValidator from '../../validators/dtos/UpdateDepartmentValidator'
+import UpdateDepartmentValidator from '../../validators/dtos/DepartmentUpdateValidator'
 
 export default async function EditDepartment(req: Request, res: Response) {
   try {

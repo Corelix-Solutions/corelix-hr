@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import NewDepartmentValidator from '../../validators/dtos/NewDepartmentValidator'
+import NewDepartmentValidator from '../../validators/dtos/DepartmentCreateValidator'
 
 export default async function AddDepartment(req: Request, res: Response) {
   try {
