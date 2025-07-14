@@ -1,5 +1,6 @@
 import express from 'express'
 import AttendanceController from './controllers/AttendanceController'
+import DepartmentController from './controllers/DepartmentController'
 import EmployeeController from './controllers/EmployeeController'
 import HrController from './controllers/HrController'
 import envVars from './envVars'
@@ -16,6 +17,7 @@ async function main() {
   app.use('/api/attendance', AttendanceController)
   app.use('/api/hr', HrController)
   app.use('/api/employees', EmployeeController)
+  app.use('/api/departments', DepartmentController)
 
   app.listen(PORT, () => console.log(`Running on port ${PORT}`))
 }

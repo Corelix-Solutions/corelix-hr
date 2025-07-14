@@ -8,3 +8,4 @@ export type CreatePersonResult = Prisma.Result<
   CreatePersonArgs,
   'create'
 >
+export type UpsertPositionArgs = Prisma.Args<typeof prisma.position, 'upsert'>
