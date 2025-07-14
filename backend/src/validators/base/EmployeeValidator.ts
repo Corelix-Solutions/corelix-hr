@@ -7,6 +7,7 @@ import EmergencyContactValidator from './EmergencyContactValidator'
 import PersonValidator from './PersonValidator'
 
 export default z.object({
+  id: z.number(),
   address: RequiredStringValidator,
   civilStatus: z.enum(['Single', 'Married', 'Divorced', 'Widowed']),
   dateHired: z.coerce.date().default(new Date()),

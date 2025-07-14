@@ -6,6 +6,7 @@ import {
 import ContactInfoValidator from './ContactInfoValidator'
 
 export default z.object({
+  id: z.number(),
   firstName: RequiredStringValidator,
   middleName: TrimmedStringValidator.nullish(),
   lastName: RequiredStringValidator,

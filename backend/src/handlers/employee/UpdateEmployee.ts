@@ -15,6 +15,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
 
     const { person, emergencyContacts, ...parsedResult } = body
     const { contactInfos: personContactInfos, ...personFullName } = person
+    const { id: employeeId, ...newEmployeeData } = parsedResult
 
     // Get Employee
     const employeeToBeUpdated = await prisma.employee.findFirst({
@@ -94,11 +95,11 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       }),
     )
 
-    // Finally create the employee
+    // Finally update the employee
     const updatedEmployee = await prisma.employee.update({
       where: { id: employeeToBeUpdated.id },
       data: {
-        ...parsedResult,
+        ...newEmployeeData,
         emergencyContacts: {
           createMany: { data: mappedEmContactIdWithRelationship },
         },

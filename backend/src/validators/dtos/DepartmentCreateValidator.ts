@@ -1,7 +1,7 @@
 import * as z from 'zod'
 import DepartmentValidator from '../base/DepartmentValidator'
-import NewPositionValidator from './PositionCreateValidator'
+import PositionCreateValidator from './PositionCreateValidator'
 
 export default DepartmentValidator.omit({ id: true }).extend({
-  positions: z.array(NewPositionValidator).default([]),
+  positions: z.array(PositionCreateValidator).default([]),
 })
