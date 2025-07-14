@@ -59,7 +59,7 @@ model Position {
   id           Int                @id @default(autoincrement())
   departmentId Int
   name         String
-  type         EmploymentType
+  type         PositionType
   department   Department         @relation(fields: [departmentId], references: [id])
   employees    EmployeePosition[]
 }
@@ -144,7 +144,7 @@ enum LeaveRequestStatus {
   Approved
 }
 
-enum EmploymentType {
+enum PositionType {
   FullTime
   PartTime
   Intern
