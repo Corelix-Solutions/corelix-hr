@@ -4,7 +4,7 @@ import DeleteEmployee from '../handlers/employee/DeleteEmployee'
 import GetEmployees from '../handlers/employee/GetEmployees'
 import UpdateEmployee from '../handlers/employee/UpdateEmployee'
 
-const EmployeeController = Router()
+const EmployeeController = Router({ mergeParams: true })
 
 EmployeeController.get('/', GetEmployees)
 EmployeeController.post('/', AddEmployee)

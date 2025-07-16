@@ -4,7 +4,7 @@ import DeleteDepartment from '../handlers/department/DeleteDepartment'
 import GetDepartments from '../handlers/department/GetDepartments'
 import UpdateDepartment from '../handlers/department/UpdateDepartment'
 
-const DepartmentController = Router()
+const DepartmentController = Router({ mergeParams: true })
 
 DepartmentController.get('/', GetDepartments)
 DepartmentController.post('/', AddDepartment)
