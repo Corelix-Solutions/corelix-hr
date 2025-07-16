@@ -27,7 +27,7 @@ export default async function UpdateDepartment(req: Request, res: Response) {
         type: position.type,
         departmentId: departmentToBeUpdated.id,
       },
-      update: { ...position },
+      update: position,
       where: { id: position.id },
     }))
 

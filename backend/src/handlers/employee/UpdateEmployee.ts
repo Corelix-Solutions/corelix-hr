@@ -1,8 +1,7 @@
 import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { PersonCreateResult } from '../../types/prisma'
-import EmployeeValidator from '../../validators/base/EmployeeValidator'
+import EmployeeUpdateValidator from '../../validators/dtos/EmployeeUpdateValidator'
 import { IdValidator } from '../../validators/UtilityValidators'
 
 export default async function UpdateEmployee(req: Request, res: Response) {
@@ -11,11 +10,15 @@ export default async function UpdateEmployee(req: Request, res: Response) {
     // Do not touch since this allows makes it easier to move to a new router if need be
     // If you want to deconstruct them, do it on later code
     const params = IdValidator.pick({ employeeId: true }).parse(req.params)
-    const body = EmployeeValidator.parse(req.body)
+    const body = EmployeeUpdateValidator.parse(req.body)
 
-    const { person, emergencyContacts, ...parsedResult } = body
-    const { contactInfos: personContactInfos, ...personFullName } = person
-    const { id: employeeId, ...newEmployeeData } = parsedResult
+    const {
+      person,
+      emergencyContacts: newEmergencyContacts,
+      ...newEmployeeData
+    } = body
+    const { contactInfos: newEmployeeContactInfos, ...otherPersonDetails } =
+      person
 
     // Get Employee
     const employeeToBeUpdated = await prisma.employee.findFirst({
@@ -40,59 +43,24 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       return
     }
 
-    // Delete the contact info of the employee then insert the new ones from the submission later
-    const employeeContactInfoIds = employeeToBeUpdated.person.contactInfos.map(
-      (infos) => infos.id,
+    // Update employee person
+    await prisma.person.update({
+      data: {
+        firstName: person.firstName,
+        middleName: person.middleName,
+        lastName: person.lastName,
+      },
+      where: { id: person.id },
+    })
+
+    await UpsertAndCleanPersonContactInfos(
+      employeeToBeUpdated.person.id,
+      newEmployeeContactInfos,
     )
-    await prisma.contactInfo.deleteMany({
-      where: { id: { in: employeeContactInfoIds } },
-    })
 
-    // Delete the emergency contacts and then insert the new ones from the submission
-    let oldEmContactIds: number[] = []
-    let oldEmContactPersonIds: number[] = []
-    let oldEmContactInfoIds: number[] = []
-    for (const contact of employeeToBeUpdated.emergencyContacts) {
-      oldEmContactIds.push(contact.id)
-      oldEmContactPersonIds.push(contact.personId)
-      oldEmContactInfoIds = oldEmContactInfoIds.concat(
-        contact.person.contactInfos.map((info) => info.id),
-      )
-    }
-
-    await prisma.employeeEmergencyContact.deleteMany({
-      where: { id: { in: oldEmContactIds } },
-    })
-    await prisma.person.deleteMany({
-      where: { id: { in: oldEmContactPersonIds } },
-    })
-    await prisma.contactInfo.deleteMany({
-      where: { id: { in: oldEmContactInfoIds } },
-    })
-
-    // Extract, insert into db, and map the emergency contacts
-    let insertedEmergencyPeople: PersonCreateResult[] = []
-    for (const currentContact of emergencyContacts) {
-      const { contactInfos, ...fullName } = currentContact.person
-      const insertedEmergencyPerson = await prisma.person.create({
-        data: {
-          ...fullName,
-          contactInfos: { createMany: { data: contactInfos } },
-        },
-      })
-
-      insertedEmergencyPeople.push(insertedEmergencyPerson)
-    }
-
-    const mappedEmContactIdWithRelationship = insertedEmergencyPeople.map(
-      (contactInDb) => ({
-        personId: contactInDb.id,
-        relationship: emergencyContacts.find(
-          (submittedContact) =>
-            submittedContact.person.firstName === contactInDb.firstName &&
-            submittedContact.person.lastName,
-        )!.relationship,
-      }),
+    await UpsertAndCleanEmployeeEmergencyContacts(
+      params.employeeId,
+      newEmergencyContacts,
     )
 
     // Finally update the employee
@@ -100,18 +68,13 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       where: { id: employeeToBeUpdated.id },
       data: {
         ...newEmployeeData,
-        emergencyContacts: {
-          createMany: { data: mappedEmContactIdWithRelationship },
-        },
+      },
+      include: {
         person: {
-          update: {
-            ...personFullName,
-            contactInfos: {
-              createMany: {
-                data: personContactInfos,
-              },
-            },
-          },
+          include: { contactInfos: true },
+        },
+        emergencyContacts: {
+          include: { person: { include: { contactInfos: true } } },
         },
       },
     })
@@ -132,4 +95,139 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       })
     }
   }
+}
+
+async function UpsertAndCleanEmployeeEmergencyContacts(
+  employeeId: number,
+  newEmergencyContacts: {
+    id: number
+    person: {
+      id: number
+      firstName: string
+      lastName: string
+      contactInfos: {
+        id: number
+        number: string
+        type: 'Landline' | 'Mobile'
+      }[]
+      middleName?: string | null | undefined
+    }
+    relationship:
+      | 'Parent'
+      | 'Sibling'
+      | 'Spouse'
+      | 'Child'
+      | 'Guardian'
+      | 'Other'
+  }[],
+) {
+  const employeeToBeUpdated = await prisma.employee.findFirstOrThrow({
+    where: { id: employeeId },
+    include: {
+      emergencyContacts: {
+        include: { person: { include: { contactInfos: true } } },
+      },
+    },
+  })
+
+  // Delete the person linked to the old emergency contact since the deletion
+  // is set to cascade on the schema file
+  const removedEmergencyContactPersonIds = employeeToBeUpdated.emergencyContacts
+    .filter(
+      (oldContact) =>
+        !newEmergencyContacts.some(
+          (newContacts) => newContacts.id === oldContact.id,
+        ),
+    )
+    .map((oldContact) => oldContact.id)
+
+  await prisma.person.deleteMany({
+    where: { id: { in: removedEmergencyContactPersonIds } },
+  })
+
+  const upsertedEmployeeEmergencyContacts = await Promise.all(
+    newEmergencyContacts.map(async (newEmergencyContact) => {
+      const { contactInfos: newContactInfos, ...newPersonDetails } =
+        newEmergencyContact.person
+      // Upsert the emergency contact person details first
+      const upsertedEmergencyPerson = await prisma.person.upsert({
+        create: {
+          firstName: newPersonDetails.firstName,
+          middleName: newPersonDetails.middleName,
+          lastName: newPersonDetails.lastName,
+        },
+        update: newPersonDetails,
+        where: {
+          id: newPersonDetails.id,
+        },
+      })
+
+      UpsertAndCleanPersonContactInfos(
+        upsertedEmergencyPerson.id,
+        newContactInfos,
+      )
+
+      return await prisma.employeeEmergencyContact.upsert({
+        create: {
+          employeeId: employeeId,
+          personId: upsertedEmergencyPerson.id,
+          relationship: newEmergencyContact.relationship,
+        },
+        update: {
+          personId: upsertedEmergencyPerson.id,
+          relationship: newEmergencyContact.relationship,
+        },
+        where: {
+          id: newEmergencyContact.id,
+        },
+      })
+    }),
+  )
+
+  return upsertedEmployeeEmergencyContacts
+}
+
+async function UpsertAndCleanPersonContactInfos(
+  personId: number,
+  newEmployeeContactInfos: {
+    id: number
+    number: string
+    type: 'Landline' | 'Mobile'
+  }[],
+) {
+  const personToBeUpdated = await prisma.person.findFirstOrThrow({
+    where: { id: personId },
+    include: { contactInfos: true },
+  })
+
+  // Delete old employee person contact info
+  const removedContactInfoIds = personToBeUpdated.contactInfos
+    .filter(
+      (oldContact) =>
+        !newEmployeeContactInfos.some(
+          (newContact) => newContact.id === oldContact.id,
+        ),
+    )
+    .map((oldContact) => oldContact.id)
+  await prisma.contactInfo.deleteMany({
+    where: { id: { in: removedContactInfoIds } },
+  })
+
+  // Upsert employee person contact info
+  const upsertedEmployeeContactInfos = await Promise.all(
+    newEmployeeContactInfos.map((employeeContact) =>
+      prisma.contactInfo.upsert({
+        create: {
+          personId: personId,
+          type: employeeContact.type,
+          number: employeeContact.number,
+        },
+        update: {
+          ...employeeContact,
+        },
+        where: { id: employeeContact.id },
+      }),
+    ),
+  )
+  return upsertedEmployeeContactInfos
 }
