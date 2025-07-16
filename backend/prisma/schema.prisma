@@ -105,7 +105,7 @@ model ContactInfo {
   personId Int
   type     ContactType
   number   String
-  person   Person      @relation(fields: [personId], references: [id])
+  person   Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
 }
 
 model EmployeeEmergencyContact {
@@ -114,7 +114,7 @@ model EmployeeEmergencyContact {
   personId     Int
   relationship EmergencyContactRelationship
   person       Person                       @relation(fields: [personId], references: [id])
-  employee     Employee                     @relation(fields: [employeeId], references: [id])
+  employee     Employee                     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }
 
 enum ContactType {
