@@ -2,14 +2,12 @@ import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
 import EmployeeUpdateValidator from '../../validators/dtos/EmployeeUpdateValidator'
-import { IdValidator } from '../../validators/UtilityValidators'
 
 export default async function UpdateEmployee(req: Request, res: Response) {
   try {
     // Parsing of request params, body, and queries happen here
     // Do not touch since this allows makes it easier to move to a new router if need be
     // If you want to deconstruct them, do it on later code
-    const params = IdValidator.pick({ employeeId: true }).parse(req.params)
     const body = EmployeeUpdateValidator.parse(req.body)
 
     const {
@@ -17,12 +15,11 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       emergencyContacts: newEmergencyContacts,
       ...newEmployeeData
     } = body
-    const { contactInfos: newEmployeeContactInfos, ...otherPersonDetails } =
-      person
+    const { contactInfos: newEmployeeContactInfos } = person
 
     // Get Employee
     const employeeToBeUpdated = await prisma.employee.findFirst({
-      where: { id: params.employeeId },
+      where: { id: body.id },
       include: {
         emergencyContacts: {
           include: { person: { include: { contactInfos: true } } },
@@ -35,7 +32,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
 
     if (!employeeToBeUpdated) {
       console.error(
-        `Failed to update employee. Could not find employee with ID ${params.employeeId}. `,
+        `Failed to update employee. Could not find employee with ID ${body.id}. `,
       )
       res
         .status(404)
@@ -58,10 +55,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
       newEmployeeContactInfos,
     )
 
-    await UpsertAndCleanEmployeeEmergencyContacts(
-      params.employeeId,
-      newEmergencyContacts,
-    )
+    await UpsertAndCleanEmployeeEmergencyContacts(body.id, newEmergencyContacts)
 
     // Finally update the employee
     const updatedEmployee = await prisma.employee.update({

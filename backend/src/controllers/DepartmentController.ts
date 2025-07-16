@@ -6,9 +6,9 @@ import UpdateDepartment from '../handlers/department/UpdateDepartment'
 
 const DepartmentController = Router({ mergeParams: true })
 
-DepartmentController.get('/', GetDepartments)
-DepartmentController.post('/', AddDepartment)
-DepartmentController.put('/:departmentId', UpdateDepartment)
-DepartmentController.delete('/:departmentId', DeleteDepartment)
+DepartmentController.get(`/${GetDepartments.name}`, GetDepartments)
+DepartmentController.post(`/${AddDepartment.name}`, AddDepartment)
+DepartmentController.put(`/${UpdateDepartment.name}`, UpdateDepartment)
+DepartmentController.delete(`/${DeleteDepartment.name}`, DeleteDepartment)
 
 export default DepartmentController

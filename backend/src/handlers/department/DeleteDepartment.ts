@@ -5,15 +5,15 @@ import { IdValidator } from '../../validators/UtilityValidators'
 
 export default async function DeleteDepartment(req: Request, res: Response) {
   try {
-    const params = IdValidator.pick({ departmentId: true }).parse(req.params)
+    const body = IdValidator.pick({ departmentId: true }).parse(req.body)
 
     const departmentToBeDeleted = await prisma.department.findFirst({
-      where: { id: { equals: params.departmentId } },
+      where: { id: { equals: body.departmentId } },
     })
 
     if (!departmentToBeDeleted) {
       res.status(404).json({
-        message: `Failed to delete department ${params.departmentId}. Department was not found.`,
+        message: `Failed to delete department ${body.departmentId}. Department was not found.`,
       })
       return
     }

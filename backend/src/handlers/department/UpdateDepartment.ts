@@ -2,21 +2,19 @@ import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
 import { PositionUpsertArgs } from '../../types/prisma'
-import { IdValidator } from '../../validators/UtilityValidators'
-import UpdateDepartmentValidator from '../../validators/dtos/DepartmentUpdateValidator'
+import DepartmentValidator from '../../validators/base/DepartmentValidator'
 
 export default async function UpdateDepartment(req: Request, res: Response) {
   try {
-    const params = IdValidator.pick({ departmentId: true }).parse(req.params)
-    const body = UpdateDepartmentValidator.parse(req.body)
+    const body = DepartmentValidator.parse(req.body)
 
     const departmentToBeUpdated = await prisma.department.findFirst({
-      where: { id: { equals: params.departmentId } },
+      where: { id: { equals: body.id } },
     })
 
     if (!departmentToBeUpdated) {
       res.status(404).json({
-        message: `Failed to update department ${params.departmentId}. Department was not found.`,
+        message: `Failed to update department ${body.id}. Department was not found.`,
       })
       return
     }

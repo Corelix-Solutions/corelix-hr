@@ -8,16 +8,16 @@ export default async function DeleteEmployee(req: Request, res: Response) {
     // Parsing of request params, body, and queries happen here
     // Do not touch since this allows makes it easier to move to a new router if need be
     // If you want to deconstruct them, do it on later code
-    const params = IdValidator.pick({ employeeId: true }).parse(req.params)
+    const body = IdValidator.pick({ employeeId: true }).parse(req.body)
 
     // Get Employee
     const matchingEmployeeIdCount = await prisma.employee.count({
-      where: { id: params.employeeId },
+      where: { id: body.employeeId },
     })
 
     if (matchingEmployeeIdCount < 1) {
       console.error(
-        `Failed to delete employee. Could not find employee with ID ${params.employeeId}. `,
+        `Failed to delete employee. Could not find employee with ID ${body.employeeId}. `,
       )
       res
         .status(404)
@@ -26,7 +26,7 @@ export default async function DeleteEmployee(req: Request, res: Response) {
     }
 
     await prisma.employee.delete({
-      where: { id: params.employeeId },
+      where: { id: body.employeeId },
     })
 
     res.status(201).json({ message: 'Employee deleted successfully.' })

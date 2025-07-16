@@ -3,6 +3,6 @@ import { IdValidator } from '../UtilityValidators'
 import EmployeeValidator from '../base/EmployeeValidator'
 
 export default z.object({
-  ...EmployeeValidator.omit({ id: true }).shape,
+  ...EmployeeValidator.shape,
   ...IdValidator.pick({ positionId: true }).shape,
 })

@@ -1,16 +1,18 @@
 import { Router } from 'express'
 import AddEmployee from '../handlers/employee/AddEmployee'
+import AddPositionToEmployee from '../handlers/employee/AddPositionToEmployee'
 import DeleteEmployee from '../handlers/employee/DeleteEmployee'
+import GetEmployeePositions from '../handlers/employee/GetEmployeePositions'
 import GetEmployees from '../handlers/employee/GetEmployees'
 import UpdateEmployee from '../handlers/employee/UpdateEmployee'
-import EmployeePositionController from './EmployeePositionController'
 
 const EmployeeController = Router({ mergeParams: true })
-EmployeeController.use('/:employeeId/positions', EmployeePositionController)
 
-EmployeeController.get('/', GetEmployees)
-EmployeeController.post('/', AddEmployee)
-EmployeeController.put('/:employeeId', UpdateEmployee)
-EmployeeController.delete('/:employeeId', DeleteEmployee)
+EmployeeController.get(`/${GetEmployees.name}`, GetEmployees)
+EmployeeController.post(`/${AddEmployee.name}`, AddEmployee)
+EmployeeController.put(`/${UpdateEmployee.name}`, UpdateEmployee)
+EmployeeController.delete(`/${DeleteEmployee.name}`, DeleteEmployee)
+EmployeeController.get(`/${GetEmployeePositions.name}`, GetEmployeePositions)
+EmployeeController.post(`/${AddPositionToEmployee.name}`, AddPositionToEmployee)
 
 export default EmployeeController

@@ -8,10 +8,10 @@ export default async function GetEmployeePositions(
   res: Response,
 ) {
   try {
-    const params = IdValidator.pick({ employeeId: true }).parse(req.params)
+    const body = IdValidator.pick({ employeeId: true }).parse(req.body)
 
     const employeePositions = await prisma.employeePosition.findMany({
-      where: { employeeId: params.employeeId },
+      where: { employeeId: body.employeeId },
       include: {
         position: { include: { department: true } },
         supervisor: { include: { person: true } },
