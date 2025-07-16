@@ -3,8 +3,10 @@ import AddEmployee from '../handlers/employee/AddEmployee'
 import DeleteEmployee from '../handlers/employee/DeleteEmployee'
 import GetEmployees from '../handlers/employee/GetEmployees'
 import UpdateEmployee from '../handlers/employee/UpdateEmployee'
+import EmployeePositionController from './EmployeePositionController'
 
 const EmployeeController = Router({ mergeParams: true })
+EmployeeController.use('/:employeeId/positions', EmployeePositionController)
 
 EmployeeController.get('/', GetEmployees)
 EmployeeController.post('/', AddEmployee)
