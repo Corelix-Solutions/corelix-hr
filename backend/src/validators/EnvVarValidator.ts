@@ -11,5 +11,5 @@ export default z.object({
   DATABASE_PORT: RequiredStringValidator,
   DATABASE_NAME: RequiredStringValidator,
   PORT: z.coerce.number(),
-  FILE_STORAGE_PATH_ROOT: RequiredStringValidator,
+  FILE_STORAGE_PATH_ROOT: RequiredStringValidator.startsWith('/').endsWith('/'),
 })
