@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
 import * as z from 'zod'
 import { prisma } from '../../PrismaSingleton'
-import { AddPositionToEmployeeValidator } from '../../validators/dtos/AddPositionToEmployeeValidator'
+import EmployeePositionCreateValidator from '../../validators/dtos/EmployeePositionCreateValidator'
 
 export default async function AddPositionToEmployee(
   req: Request,
   res: Response,
 ) {
   try {
-    const body = AddPositionToEmployeeValidator.parse(req.body)
+    const body = EmployeePositionCreateValidator.parse(req.body)
 
     const addedEmployeePosition = await prisma.employeePosition.create({
       data: body,
