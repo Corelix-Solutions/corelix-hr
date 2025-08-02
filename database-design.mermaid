@@ -1,0 +1,227 @@
+%% Paste this entire thing on http://mermaid.live to visualize this database design
+
+%% ---
+%% config:
+%%   layout: elk
+%%   elk:
+%%     nodePlacementStrategy: LINEAR_SEGMENTS
+%% ---
+erDiagram
+
+Person ||--o{ ContactInfo : ""
+Person ||--o{ EmployeeEmergencyContact : ""
+Person ||--o| Employee : ""
+
+EmployeeEmergencyContact }o--|| Employee : ""
+
+Employee ||--o{ AdditionalEmployeeAttribute : ""
+Employee ||--o{ Attendance : ""
+Employee ||--o{ LeaveRequest : ""
+Employee |o--|| Address : ""
+Employee ||--|{ EmployeePosition : "has"
+Employee ||--o{ EmployeePosition : "supervisor/supervised"
+
+Address ||--o| Company : ""
+
+Company ||--|{ Department : ""
+Department ||--|{ Position : ""
+Position ||--o{ EmployeePosition : ""
+
+EmployeePosition ||--o{ Payslip : ""
+Payslip ||--o{ PayslipItem : ""
+
+%% Note: If a datatype has an underscore (_) in front, that means it's nullable
+
+Person {
+    int id PK
+    string firstName
+    _string middleName
+    string lastName
+}
+
+Employee {
+    int id PK
+    int personId FK,UK
+    int addressId FK,UK
+    string email
+    _string profileUrl
+    string passwordHash
+    string pronouns
+    Gender gender
+    bool mustChangePassword
+    CivilStatus civilStatus
+    datetime dateHired
+    _datetime probationEndDate
+    datetime dateOfBirth
+}
+
+AdditionalEmployeeAttribute {
+    int id PK
+    int employeeId FK
+    string name
+    bool isRequired
+    AttributeType type
+    _bool booleanValue
+    _string stringValue
+    _int intValue
+}
+
+Address {
+    int id PK
+    string line1
+    string line2
+    string state
+    string postalCode
+    string city
+}
+
+Company {
+    int id PK
+    int addressId FK,UK
+    string name
+    string primaryColor
+    _string logoUrl
+}
+
+Department {
+    int id PK
+    int companyId FK
+    string name
+}
+
+Position {
+    int id PK
+    int departmentId FK
+    string name
+    PositionType type
+}
+
+EmployeePosition {
+    int id PK
+    int employeeId FK
+    int positionId FK
+    int supervisorId FK "Also references Employee"
+    int startWorkHour
+    int startWorkMinute
+    int endWorkHour
+    int endWorkMinute
+    datetime dateStarted
+    _datetime dateEnded
+}
+
+Attendance {
+    int id PK
+    int employeeId FK
+    datetime timeIn
+    _datetime timeOut
+}
+
+LeaveRequest {
+    int id PK
+    int employeeId FK
+    LeaveRequestStatus status
+    LeaveReason reason
+    datetime startDate
+    datetime endDate
+    datetime dateCreated
+}
+
+ContactInfo {
+    int id PK
+    int personId FK
+    ContactType type
+    string number
+}
+
+EmployeeEmergencyContact {
+    int id PK
+    int employeeId FK
+    int personId FK
+    EmergencyContactRelationship relationship
+}
+
+Payslip {
+    int id PK
+    int employeePositionId FK
+    datetime dateCreated
+}
+
+PayslipItem {
+    int id PK
+    int payslipId FK
+    string name
+    PayslipItemType type
+    int amount
+}
+
+Gender:::Enum {
+    enumValue Male
+    enumValue Female
+    enumValue Other
+}
+
+ContactType:::Enum {
+    enumValue Landline
+    enumValue Mobile
+}
+
+EmergencyContactRelationship:::Enum {
+    enumValue Parent
+    enumValue Sibling
+    enumValue Spouse
+    enumValue Child
+    enumValue Guardian
+    enumValue Other
+}
+
+LeaveReason:::Enum {
+    enumValue Sick
+    enumValue Vacation
+    enumValue PaternalMaternal
+}
+
+LeaveRequestStatus:::Enum {
+    enumValue Pending
+    enumValue Cancelled
+    enumValue Rejected
+    enumValue Approved
+}
+
+PositionType:::Enum {
+    enumValue FullTime
+    enumValue PartTime
+    enumValue Intern
+    enumValue Contractor
+}
+
+CivilStatus:::Enum {
+  enumValue Single
+  enumValue Married
+  enumValue Divorced
+  enumValue Widowed
+}
+
+EmploymentStatus:::Enum {
+  enumValue Active
+  enumValue Inactive
+  enumValue OnLeave
+  enumValue Suspended
+  enumValue Terminated
+  enumValue Resigned
+  enumValue Retired
+  enumValue Probation
+  enumValue ContractEnded
+}
+
+PayslipItemType:::Enum {
+    enumValue Earning
+    enumValue Deduction
+}
+
+AttributeType:::Enum {
+    enumValue Boolean
+    enumValue String
+    enumValue Int
+}
+
+classdef Enum color:#ff0
