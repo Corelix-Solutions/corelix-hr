@@ -87,6 +87,10 @@ Created using the following technologies and Deployed on `Railway`
    cd frontend && npm run dev
    ```
 
+## Notes
+
+When you're making changes to the database schema, don't generate migration files and commit them. Instead, use the `npx prisma db push` command to update your local database to the schema. We should only generate migration files once we're (re)deploying.
+
 ## To learn more or you have questions
 
 Feel free to email me on my corelix solution's email hellocorelixsolutions@gmail.com or email me on my personal (faster response) saguinsincarl8@gmail.com, Or if you want to be more professional let's talk on
