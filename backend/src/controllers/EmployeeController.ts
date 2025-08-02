@@ -3,6 +3,7 @@ import AddEmployee from '../handlers/employee/AddEmployee'
 import AddPositionToEmployee from '../handlers/employee/AddPositionToEmployee'
 import DeleteEmployee from '../handlers/employee/DeleteEmployee'
 import DownloadEmployeePayslip from '../handlers/employee/DownloadEmployeePayslip'
+import GetEmployeePayslips from '../handlers/employee/GetEmployeePayslips'
 import GetEmployeePositions from '../handlers/employee/GetEmployeePositions'
 import GetEmployees from '../handlers/employee/GetEmployees'
 import UpdateCurrentEmployeePosition from '../handlers/employee/UpdateCurrentEmployeePosition'
@@ -20,6 +21,7 @@ EmployeeController.put(
   `/${UpdateCurrentEmployeePosition.name}`,
   UpdateCurrentEmployeePosition,
 )
+EmployeeController.post(`/${GetEmployeePayslips.name}`, GetEmployeePayslips)
 EmployeeController.get(
   `/${DownloadEmployeePayslip.name}`,
   DownloadEmployeePayslip,

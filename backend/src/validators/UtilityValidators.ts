@@ -6,4 +6,5 @@ export const IdValidator = z.object({
   positionId: z.coerce.number(),
   employeeId: z.coerce.number(),
   departmentId: z.coerce.number(),
+  payslipId: z.coerce.number(),
 })

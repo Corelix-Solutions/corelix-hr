@@ -4,6 +4,8 @@ import * as fs from 'fs/promises'
 import { jsPDF } from 'jspdf'
 import { DateTime } from 'luxon'
 import envVars from '../../envVars'
+import { prisma } from '../../PrismaSingleton'
+import { IdValidator } from '../../validators/UtilityValidators'
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
@@ -14,8 +16,14 @@ export default async function DownloadEmployeePayslip(
   res: Response,
 ) {
   try {
+    const body = IdValidator.pick({ payslipId: true }).parse(req.body)
+
+    const payslipInfo = await GetPayslip(body.payslipId)
+
     const storageRoot = envVars!.FILE_STORAGE_PATH_ROOT
-    const currentDateTime = DateTime.now().toFormat('yyyy-MM-dd-hh-mm-ss')
+    const currentDateTime = DateTime.fromJSDate(payslipInfo.payDate).toFormat(
+      'yyyy-MM-dd-hh-mm-ss',
+    )
     const fileName = `${currentDateTime}-payslip.pdf`
     const filePath = `${storageRoot}${fileName}`
 
@@ -31,64 +39,6 @@ export default async function DownloadEmployeePayslip(
       putOnlyUsedFonts: true,
       format: 'letter',
     })
-
-    // TODO: Obtain this object from database
-    const payslipInfo = {
-      payDate: DateTime.fromJSDate(new Date()).plus({ days: 15 }).toJSDate(),
-      payPeriodStart: new Date(),
-      payPeriodEnd: DateTime.fromJSDate(new Date())
-        .plus({ days: 15 })
-        .toJSDate(),
-      company: {
-        name: 'CompanyName',
-        address: 'Company Building',
-      },
-      employee: {
-        fullName: {
-          firstName: 'John',
-          middleName: 'J',
-          lastName: 'Smith',
-        },
-      },
-      department: {
-        name: 'DepartmentName',
-        position: {
-          name: 'Name',
-        },
-      },
-      earnings: [
-        {
-          name: 'Basic Pay',
-          amount: 100,
-        },
-        {
-          name: 'Paid time off',
-          amount: 100,
-        },
-        {
-          name: 'Allowance',
-          amount: 100,
-        },
-        {
-          name: 'Overtime Pay',
-          amount: 100,
-        },
-      ],
-      deductions: [
-        {
-          name: 'PAG-IBIG Tax',
-          amount: 100,
-        },
-        {
-          name: 'SSS',
-          amount: 100,
-        },
-        {
-          name: 'PhilHealth',
-          amount: 100,
-        },
-      ],
-    }
 
     const normalFontSize = doc.getFontSize()
 
@@ -122,6 +72,145 @@ export default async function DownloadEmployeePayslip(
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: 'Server error' })
+  }
+}
+
+type CompletePayslipInfo = {
+  payDate: Date
+  payPeriodStart: Date
+  payPeriodEnd: Date
+  company: {
+    name: string
+    address: string
+  }
+  employee: {
+    fullName: {
+      firstName: string
+      middleName: string
+      lastName: string
+    }
+  }
+  department: {
+    name: string
+    position: {
+      name: string
+    }
+  }
+  earnings: {
+    name: string
+    amount: number
+  }[]
+  deductions: {
+    name: string
+    amount: number
+  }[]
+}
+
+function GetDummyPayslip(): CompletePayslipInfo {
+  return {
+    payDate: DateTime.fromJSDate(new Date()).plus({ days: 15 }).toJSDate(),
+    payPeriodStart: new Date(),
+    payPeriodEnd: DateTime.fromJSDate(new Date()).plus({ days: 15 }).toJSDate(),
+    company: {
+      name: 'CompanyName',
+      address: 'Company Building',
+    },
+    employee: {
+      fullName: {
+        firstName: 'John',
+        middleName: 'J',
+        lastName: 'Smith',
+      },
+    },
+    department: {
+      name: 'DepartmentName',
+      position: {
+        name: 'Name',
+      },
+    },
+    earnings: [
+      {
+        name: 'Basic Pay',
+        amount: 100,
+      },
+      {
+        name: 'Paid time off',
+        amount: 100,
+      },
+      {
+        name: 'Allowance',
+        amount: 100,
+      },
+      {
+        name: 'Overtime Pay',
+        amount: 100,
+      },
+    ],
+    deductions: [
+      {
+        name: 'PAG-IBIG Tax',
+        amount: 100,
+      },
+      {
+        name: 'SSS',
+        amount: 100,
+      },
+      {
+        name: 'PhilHealth',
+        amount: 100,
+      },
+    ],
+  }
+}
+
+async function GetPayslip(payslipId: number): Promise<CompletePayslipInfo> {
+  const payslipFromDb = await prisma.payslip.findFirstOrThrow({
+    where: { id: payslipId },
+    include: {
+      payslipItems: true,
+      employeePosition: {
+        include: {
+          employee: { include: { person: true } },
+          supervisor: { include: { person: true } },
+          position: {
+            include: {
+              department: {
+                include: { company: { include: { address: true } } },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  const company = payslipFromDb.employeePosition.position.department.company
+  return {
+    company: {
+      name: company.name,
+      address: `${company.address.line1} ${company.address.line2}, ${company.address.state}, ${company.address.city}, ${company.address.postalCode}`,
+    },
+    department: {
+      name: payslipFromDb.employeePosition.position.department.name,
+      position: { name: payslipFromDb.employeePosition.position.name },
+    },
+    payPeriodStart: payslipFromDb.payPeriodStart,
+    payPeriodEnd: payslipFromDb.payPeriodEnd,
+    payDate: payslipFromDb.dateCreated,
+    employee: {
+      fullName: {
+        firstName: payslipFromDb.employeePosition.employee.person.firstName,
+        middleName:
+          payslipFromDb.employeePosition.employee.person.middleName || '',
+        lastName: payslipFromDb.employeePosition.employee.person.lastName,
+      },
+    },
+    earnings: payslipFromDb.payslipItems
+      .filter((item) => item.type === 'Earning')
+      .map((item) => ({ name: item.name, amount: item.amount })),
+    deductions: payslipFromDb.payslipItems
+      .filter((item) => item.type === 'Deduction')
+      .map((item) => ({ name: item.name, amount: item.amount })),
   }
 }
 

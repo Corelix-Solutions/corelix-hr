@@ -168,8 +168,11 @@ model Payslip {
   id                 Int      @id @default(autoincrement())
   employeePositionId Int
   dateCreated        DateTime
+  payPeriodStart     DateTime
+  payPeriodEnd       DateTime
 
   employeePosition EmployeePosition @relation(fields: [employeePositionId], references: [id])
+  payslipItems     PayslipItem[]
 }
 
 model PayslipItem {
@@ -178,6 +181,8 @@ model PayslipItem {
   name      String
   type      PayslipItemType
   amount    Int
+
+  payslip Payslip @relation(fields: [payslipId], references: [id])
 }
 
 enum ContactType {
