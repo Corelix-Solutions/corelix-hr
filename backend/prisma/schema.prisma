@@ -106,17 +106,20 @@ model Position {
 }
 
 model EmployeePosition {
-  id              Int       @id @default(autoincrement())
-  employeeId      Int
-  positionId      Int
-  supervisorId    Int?
-  salary          BigInt
-  startWorkHour   Int
-  startWorkMinute Int
-  endWorkHour     Int
-  endWorkMinute   Int
-  dateStarted     DateTime
-  dateEnded       DateTime?
+  id                Int       @id @default(autoincrement())
+  employeeId        Int
+  positionId        Int
+  supervisorId      Int?
+  salary            BigInt
+  startWorkHour     Int
+  startWorkMinute   Int
+  endWorkHour       Int
+  endWorkMinute     Int
+  hourlyBasicPay    Int
+  hourlyOvertimePay Int
+  hourlyLeavePay    Int
+  dateStarted       DateTime
+  dateEnded         DateTime?
 
   employee   Employee  @relation(fields: [employeeId], references: [id])
   position   Position  @relation(fields: [positionId], references: [id])
