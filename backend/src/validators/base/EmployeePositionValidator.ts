@@ -7,5 +7,8 @@ export default z.object({
   endWorkMinute: z.number(),
   startWorkHour: z.number(),
   startWorkMinute: z.number(),
+  hourlyBasicPay: z.number(),
+  hourlyOvertimePay: z.number(),
+  hourlyLeavePay: z.number(),
   salary: z.bigint(),
 })

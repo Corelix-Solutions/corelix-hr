@@ -55,6 +55,11 @@ export default async function AddEmployee(req: Request, res: Response) {
     const newEmployee = await prisma.employee.create({
       data: {
         ...parsedResult,
+        address: {
+          create: {
+            ...body.address,
+          },
+        },
         passwordHash: hashedPassword,
         emergencyContacts: {
           createMany: { data: mappedEmContactIdWithRelationship },

@@ -13,6 +13,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
     const {
       person,
       emergencyContacts: newEmergencyContacts,
+      address: newAddress,
       ...newEmployeeData
     } = body
     const { contactInfos: newEmployeeContactInfos } = person
@@ -27,6 +28,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
         person: {
           include: { contactInfos: true },
         },
+        address: true,
       },
     })
 
@@ -41,7 +43,7 @@ export default async function UpdateEmployee(req: Request, res: Response) {
     }
 
     // Update employee person
-    await prisma.person.update({
+    prisma.person.update({
       data: {
         firstName: person.firstName,
         middleName: person.middleName,
@@ -56,6 +58,27 @@ export default async function UpdateEmployee(req: Request, res: Response) {
     )
 
     await UpsertAndCleanEmployeeEmergencyContacts(body.id, newEmergencyContacts)
+
+    // Upsert new address
+    prisma.address.upsert({
+      create: {
+        city: newAddress.city,
+        line1: newAddress.line1,
+        line2: newAddress.line2,
+        postalCode: newAddress.postalCode,
+        state: newAddress.state,
+      },
+      update: {
+        city: newAddress.city,
+        line1: newAddress.line1,
+        line2: newAddress.line2,
+        postalCode: newAddress.postalCode,
+        state: newAddress.state,
+      },
+      where: {
+        id: employeeToBeUpdated.addressId,
+      },
+    })
 
     // Finally update the employee
     const updatedEmployee = await prisma.employee.update({
