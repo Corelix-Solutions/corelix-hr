@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/prisma"
+  output   = "./generated/"
 }
 
 datasource db {
@@ -15,73 +15,116 @@ datasource db {
 }
 
 model Person {
-  id                Int                        @id @default(autoincrement())
-  firstName         String
-  middleName        String?
-  lastName          String
+  id         Int     @id @default(autoincrement())
+  firstName  String
+  middleName String?
+  lastName   String
+
   contactInfos      ContactInfo[]
   employee          Employee?
   emergencyContacts EmployeeEmergencyContact[]
 }
 
 model Employee {
-  id                 Int                        @id @default(autoincrement())
-  personId           Int                        @unique
+  id                 Int         @id @default(autoincrement())
+  personId           Int         @unique
+  addressId          Int         @unique
   email              String
   profileUrl         String?
   passwordHash       String
   pronouns           String
-  sss                String
-  tin                String
-  philhealth         String
-  address            String
   gender             Gender
-  mustChangePassword Boolean                    @default(true)
+  mustChangePassword Boolean     @default(true)
   civilStatus        CivilStatus
-  type               EmploymentType
   dateHired          DateTime
   probationEndDate   DateTime?
   dateOfBirth        DateTime
-  dateDeleted        DateTime?
-  person             Person                     @relation(fields: [personId], references: [id])
-  positions          EmployeePosition[]
-  attendances        Attendance[]
-  leaveRequests      LeaveRequest[]
-  subordinates       EmployeePosition[]         @relation(name: "supervisorRelation")
-  emergencyContacts  EmployeeEmergencyContact[]
+
+  person                      Person                       @relation(fields: [personId], references: [id])
+  address                     Address                      @relation(fields: [addressId], references: [id])
+  positions                   EmployeePosition[]
+  attendances                 Attendance[]
+  leaveRequests               LeaveRequest[]
+  subordinates                EmployeePosition[]           @relation(name: "supervisorRelation")
+  emergencyContacts           EmployeeEmergencyContact[]
+  additonalEmployeeAttributes AdditonalEmployeeAttribute[]
+}
+
+model AdditonalEmployeeAttribute {
+  id           Int           @id @default(autoincrement())
+  employeeId   Int
+  name         String
+  isRequired   Boolean
+  type         AttributeType
+  booleanValue Boolean?
+  stringValue  String?
+  intValue     Int?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Address {
+  id         Int    @id @default(autoincrement())
+  line1      String
+  line2      String
+  state      String
+  postalCode String
+  city       String
+
+  employee Employee?
+  company  Company?
+}
+
+model Company {
+  id           Int     @id @default(autoincrement())
+  addressId    Int     @unique
+  name         String
+  primaryColor String
+  logoUrl      String?
+
+  address     Address      @relation(fields: [addressId], references: [id])
+  departments Department[]
 }
 
 model Department {
-  id          Int        @id @default(autoincrement())
-  name        String
-  dateDeleted DateTime?
-  positions   Position[]
+  id        Int    @id @default(autoincrement())
+  companyId Int
+  name      String
+
+  positions Position[]
+  company   Company    @relation(fields: [companyId], references: [id])
 }
 
 model Position {
-  id           Int                @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   departmentId Int
   name         String
-  dateDeleted  DateTime?
-  department   Department         @relation(fields: [departmentId], references: [id])
-  employees    EmployeePosition[]
+  type         PositionType
+
+  department Department         @relation(fields: [departmentId], references: [id])
+  employees  EmployeePosition[]
 }
 
 model EmployeePosition {
-  id              Int       @id @default(autoincrement())
-  employeeId      Int
-  positionId      Int
-  supervisorId    Int?
-  salary          BigInt
-  startWorkHour   Int
-  startWorkMinute Int
-  endWorkHour     Int
-  endWorkMinute   Int
-  dateStarted     DateTime
-  dateEnded       DateTime?
-  employee        Employee  @relation(fields: [employeeId], references: [id])
-  position        Position  @relation(fields: [positionId], references: [id])
-  supervisor      Employee? @relation(name: "supervisorRelation", fields: [supervisorId], references: [id])
+  id                Int       @id @default(autoincrement())
+  employeeId        Int
+  positionId        Int
+  supervisorId      Int?
+  salary            BigInt
+  startWorkHour     Int
+  startWorkMinute   Int
+  endWorkHour       Int
+  endWorkMinute     Int
+  hourlyBasicPay    Int
+  hourlyOvertimePay Int
+  hourlyLeavePay    Int
+  dateStarted       DateTime
+  dateEnded         DateTime?
+
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  position   Position  @relation(fields: [positionId], references: [id])
+  supervisor Employee? @relation(name: "supervisorRelation", fields: [supervisorId], references: [id])
+  payslips   Payslip[]
 }
 
 model Attendance {
@@ -89,7 +132,8 @@ model Attendance {
   employeeId Int
   timeIn     DateTime
   timeOut    DateTime?
-  employee   Employee  @relation(fields: [employeeId], references: [id])
+
+  employee Employee @relation(fields: [employeeId], references: [id])
 }
 
 model LeaveRequest {
@@ -100,7 +144,8 @@ model LeaveRequest {
   startDate   DateTime
   endDate     DateTime
   dateCreated DateTime           @default(now())
-  employee    Employee           @relation(fields: [employeeId], references: [id])
+
+  employee Employee @relation(fields: [employeeId], references: [id])
 }
 
 model ContactInfo {
@@ -108,7 +153,8 @@ model ContactInfo {
   personId Int
   type     ContactType
   number   String
-  person   Person      @relation(fields: [personId], references: [id])
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
 }
 
 model EmployeeEmergencyContact {
@@ -116,8 +162,30 @@ model EmployeeEmergencyContact {
   employeeId   Int
   personId     Int
   relationship EmergencyContactRelationship
-  person       Person                       @relation(fields: [personId], references: [id])
-  employee     Employee                     @relation(fields: [employeeId], references: [id])
+
+  person   Person   @relation(fields: [personId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Payslip {
+  id                 Int      @id @default(autoincrement())
+  employeePositionId Int
+  dateCreated        DateTime
+  payPeriodStart     DateTime
+  payPeriodEnd       DateTime
+
+  employeePosition EmployeePosition @relation(fields: [employeePositionId], references: [id])
+  payslipItems     PayslipItem[]
+}
+
+model PayslipItem {
+  id        Int             @id @default(autoincrement())
+  payslipId Int
+  name      String
+  type      PayslipItemType
+  amount    Int
+
+  payslip Payslip @relation(fields: [payslipId], references: [id])
 }
 
 enum ContactType {
@@ -147,7 +215,7 @@ enum LeaveRequestStatus {
   Approved
 }
 
-enum EmploymentType {
+enum PositionType {
   FullTime
   PartTime
   Intern
@@ -179,7 +247,13 @@ enum Gender {
   Other
 }
 
-model employees {
-  employeeId       Int    @id @default(autoincrement()) @db.UnsignedInt
-  employee_Address String @db.Text
+enum AttributeType {
+  Boolean
+  String
+  Int
+}
+
+enum PayslipItemType {
+  Earning
+  Deduction
 }

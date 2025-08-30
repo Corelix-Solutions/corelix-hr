@@ -15,9 +15,8 @@ if (parseResult.success) {
   envVars = parseResult.data as EnvVarTypes
 } else {
   throw new Error(
-    `There was a problem initializing the environment variables: ${JSON.stringify(
-      parseResult.error.flatten(),
-    )}`,
+    `Please resolve the following problems with the environment variables.\n
+    ${z.prettifyError(parseResult.error)}`,
   )
 }
 

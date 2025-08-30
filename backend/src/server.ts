@@ -1,7 +1,8 @@
 import express from 'express'
 import AttendanceController from './controllers/AttendanceController'
+import DepartmentController from './controllers/DepartmentController'
+import EmployeeController from './controllers/EmployeeController'
 import HrController from './controllers/HrController'
-import ProfileController from './controllers/ProfileController'
 import envVars from './envVars'
 import { prisma } from './PrismaSingleton'
 
@@ -13,9 +14,10 @@ async function main() {
 
   app.use(express.json())
 
-  app.use('/attendance', AttendanceController)
-  app.use('/hr', HrController)
-  app.use('/profile', ProfileController)
+  app.use('/api/attendance', AttendanceController)
+  app.use('/api/hr', HrController)
+  app.use('/api/employees', EmployeeController)
+  app.use('/api/departments', DepartmentController)
 
   app.listen(PORT, () => console.log(`Running on port ${PORT}`))
 }

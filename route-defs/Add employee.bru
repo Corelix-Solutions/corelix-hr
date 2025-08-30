@@ -1,0 +1,15 @@
+meta {
+  name: Add employee
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/employees
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {}
+}
